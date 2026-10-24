@@ -13,7 +13,7 @@ let paymentBusy = false;
 
 function getPendingPayment() {
 
-    for (const store of [sessionStorage, localStorage]) {
+    for (const store of [localStorage, sessionStorage]) {
 
         try {
 
@@ -49,34 +49,32 @@ function savePendingPayment(value) {
 
     const json = JSON.stringify(value);
 
-    let saved = false;
+    // Persistent storage is required for payment recovery.
+    try {
 
-    for (const store of [sessionStorage, localStorage]) {
+        localStorage.setItem(PENDING_PAYMENT_KEY, json);
 
-        try {
+    } catch (error) {
 
-            store.setItem(
-                PENDING_PAYMENT_KEY,
-                json
-            );
+        console.error("Cannot save payment recovery data:", error);
 
-            saved = true;
-
-        } catch (error) {
-
-            console.warn(
-                "Payment recovery storage error:",
-                error
-            );
-
-        }
+        return false;
 
     }
 
-    return saved;
+    // Optional second copy for this tab.
+    try {
 
+        sessionStorage.setItem(PENDING_PAYMENT_KEY, json);
+
+    } catch (error) {
+
+        console.warn("Session backup unavailable:", error);
+
+    }
+
+    return true;
 }
-
 
 /* ==========================================
    CLEAR COMPLETED PAYMENT RECORD
@@ -133,7 +131,72 @@ async function paymentPost(route, payload) {
 
 
 /* ==========================================
-   RECOVER PREVIOUSLY PAID DOWNLOAD
+   OPEN OR RESUME RAZORPAY CHECKOUT
+========================================== */
+
+function openRazorpayCheckout(order, pending) {
+
+    if (!order?.id || !order?.amount || !order?.currency) {
+        throw new Error("Incomplete Razorpay order details.");
+    }
+
+    if (
+        !window.RAZORPAY_KEY ||
+        typeof Razorpay === "undefined"
+    ) {
+        throw new Error("Razorpay checkout is not configured.");
+    }
+
+    const options = {
+
+        key: window.RAZORPAY_KEY,
+
+        amount: order.amount,
+
+        currency: order.currency,
+
+        name: window.APP_NAME || "Jaiswal Vaivaahiki",
+
+        description: "Matrimonial Biodata PDF",
+
+        order_id: order.id,
+
+        handler: async function(response) {
+
+            // Preserve the successful checkout response
+            // before contacting the backend.
+
+            const latest = getPendingPayment() || pending;
+
+            latest.razorpayResponse = response;
+
+            if (!savePendingPayment(latest)) {
+
+                alert(
+                    "Payment response could not be saved. " +
+                    "Keep this page open and contact support."
+                );
+
+                return;
+            }
+
+            await recoverPaidDownload();
+        },
+
+        theme: {
+            color: "#7B1113"
+        }
+    };
+
+    const checkout = new Razorpay(options);
+
+    checkout.open();
+}
+
+
+
+/* ==========================================
+   RECOVER PAYMENT OR RESUME CHECKOUT
 ========================================== */
 
 async function recoverPaidDownload() {
@@ -146,8 +209,17 @@ async function recoverPaidDownload() {
 
     try {
 
-        // If a valid token was already saved,
-        // use it instead of starting another payment.
+        // Download was initiated earlier, but backend
+        // finalization may have failed due to slow internet.
+
+        if (pending.downloadInitiated && pending.token) {
+
+            await finalizePaidDownload(pending.token);
+
+            return true;
+        }
+
+        // Reuse an existing verified credit.
 
         if (pending.token) {
 
@@ -163,14 +235,12 @@ async function recoverPaidDownload() {
                 await downloadPDF();
 
                 return true;
-
             }
-
         }
 
-        let data;
+        let data = null;
 
-        // Try the Razorpay callback details first.
+        // Verify the Razorpay callback if available.
 
         if (pending.razorpayResponse) {
 
@@ -183,19 +253,20 @@ async function recoverPaidDownload() {
 
             } catch (error) {
 
+                // A network or capture delay may prevent
+                // immediate verification. Ask Razorpay again
+                // through our backend below.
+
                 console.warn(
-                    "Payment callback verification pending:",
+                    "Callback verification pending:",
                     error.message
                 );
-
             }
-
         }
 
-        // If the callback could not be verified,
-        // ask the backend to check Razorpay directly.
+        // Recover payment directly from Razorpay.
 
-        if (!data || !data.success) {
+        if (!data?.success) {
 
             data = await paymentPost(
                 "recover-payment",
@@ -204,8 +275,9 @@ async function recoverPaidDownload() {
                     recoveryKey: pending.recoveryKey
                 }
             );
-
         }
+
+        // SUCCESSFUL PAYMENT
 
         if (data.success && data.token) {
 
@@ -215,31 +287,47 @@ async function recoverPaidDownload() {
 
                 alert(
                     "Payment verified, but recovery details " +
-                    "could not be saved. Keep this page open."
+                    "could not be saved. Do not pay again."
                 );
 
+                return true;
             }
 
             await downloadPDF();
 
-        } else {
-
-            alert(
-                data.message ||
-                "Payment confirmation is pending. " +
-                "Please retry without paying again."
-            );
-
+            return true;
         }
+
+        // UNPAID ORDER: REOPEN THE SAME CHECKOUT
+
+        if (data.pending && data.resumable && data.order) {
+
+            openRazorpayCheckout(data.order, pending);
+
+            return true;
+        }
+
+        // Payment could be authorized or otherwise unsettled.
+        // Do not open a second checkout when status is uncertain.
+
+        alert(
+            data.message ||
+            "Payment status is not settled yet. " +
+            "Please retry later without paying again."
+        );
+
+        return true;
 
     } catch (error) {
 
-        console.error(
-            "Payment Recovery Error:",
-            error
-        );
+        console.error("Payment Recovery Error:", error);
 
-        if (error.message === "Download already used") {
+        // Already consumed or invalid download credit.
+
+        if (
+            error.message === "Download already used" ||
+            error.message === "Download token not found"
+        ) {
 
             clearPendingPayment();
 
@@ -247,26 +335,22 @@ async function recoverPaidDownload() {
                 localStorage.removeItem("downloadToken");
             } catch (_) {}
 
-            alert(
-                "This paid download was already confirmed as used. " +
-                "A new PDF download requires a new payment."
-            );
-
-        } else {
-
-            alert(
-                "Unable to check your previous payment. " +
-                "Please click Download PDF again later. " +
-                "Do NOT pay again.\n\n" +
-                error.message
-            );
-
+            // A new biodata can now create a new order.
+            return false;
         }
 
+        // Keep any uncertain paid order for recovery.
+
+        alert(
+            "Unable to verify your previous payment.\n\n" +
+            "Your payment record has been preserved. " +
+            "Please try again later; do not pay again " +
+            "until its status is verified.\n\n" +
+            error.message
+        );
+
+        return true;
     }
-
-    return true;
-
 }
 
 
@@ -358,7 +442,11 @@ async function startPayment() {
 
             orderId: data.order.id,
 
-            recoveryKey: data.recoveryKey
+            recoveryKey: data.recoveryKey,
+
+            amount: data.order.amount,
+
+            currency: data.order.currency
 
         };
 
@@ -374,44 +462,7 @@ async function startPayment() {
 
         }
 
-        const options = {
-
-            key: window.RAZORPAY_KEY,
-
-            amount: data.order.amount,
-
-            currency: data.order.currency,
-
-            name: window.APP_NAME,
-
-            description: "Matrimonial Biodata PDF",
-
-            order_id: data.order.id,
-
-            handler: async function(response) {
-
-                // Save the Razorpay response immediately.
-
-                pending.razorpayResponse = response;
-
-                savePendingPayment(pending);
-
-                // Verify existing payment and download.
-                // Do NOT create a second order.
-
-                await recoverPaidDownload();
-
-            },
-
-            theme: {
-                color: "#b35a1f"
-            }
-
-        };
-
-        const razorpay = new Razorpay(options);
-
-        razorpay.open();
+        openRazorpayCheckout(data.order, pending);
 
     } catch (error) {
 

@@ -2905,34 +2905,89 @@ textarea.is-valid:focus{
                 WATCH BIODATA LINK
 ========================================================== */
 
+/* ==========================================
+   WATCH BIODATA BUTTON
+========================================== */
+
 .create-biodata-link {
+
     display: inline-flex;
 
     align-items: center;
     justify-content: center;
 
-    gap: 8px;
+    gap: 10px;
+
+    padding: 14px 26px;
 
     margin-bottom: 28px;
 
-    color: #990000;
+    background-color: #990000;
+    color: #ffffff;
+
+    border: 2px solid #990000;
+    border-radius: 8px;
 
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 700;
 
     text-decoration: none;
 
-    transition: all 0.2s ease;
+    cursor: pointer;
+
+    transition: all 0.3s ease;
+
 }
+
+/* Eye icon */
 
 .create-biodata-link i {
-    font-size: 15px;
+    font-size: 17px;
+    color: #ffffff;
 }
 
-.create-biodata-link:hover {
-    color: #700000;
+/* Hover effect */
 
-    text-decoration: underline;
+.create-biodata-link:hover {
+
+    background-color: #760000;
+    border-color: #760000;
+
+    color: #ffffff;
+
+    text-decoration: none;
+
+    transform: translateY(-2px);
+
+    box-shadow: 0 5px 15px rgba(153, 0, 0, 0.22);
+
+}
+
+/* Keyboard accessibility */
+
+.create-biodata-link:focus-visible {
+
+    outline: 3px solid #d4af37;
+    outline-offset: 3px;
+
+}
+
+/* Mobile responsive */
+
+@media (max-width: 480px) {
+
+    .create-biodata-link {
+
+        padding: 12px 18px;
+
+        font-size: 14px;
+
+        max-width: 100%;
+
+        text-align: center;
+
+    }
+
 }
 
 

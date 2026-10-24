@@ -1,3 +1,4 @@
+
 /*==========================================================
                 WHATSAPP BIODATA SUBMISSION
 ==========================================================*/
@@ -22,35 +23,6 @@ const WHATSAPP_CONFIG = {
 
 function getWhatsAppMessage() {
 
-    /*
-     * Get the currently selected website language.
-     * This function comes from language.js.
-     */
-    const language =
-        typeof getCurrentLanguage === "function"
-            ? getCurrentLanguage()
-            : "en";
-
-
-    /*======================================================
-                    HINDI MESSAGE
-    ======================================================*/
-
-    if (language === "hi") {
-
-        return (
-            "नमस्ते Jaiswal Vaivaahiki Admin,\n\n" +
-
-            "मैं अपना बायोडाटा Jaiswal Vaivaahiki वैवाहिक वेबसाइट पर जोड़ना चाहता/चाहती हूँ।\n\n" +
-
-            "मैंने अपना बायोडाटा PDF डाउनलोड कर लिया है और इसे यहाँ अपलोड करने के लिए भेज रहा/रही हूँ।\n\n" +
-
-            "धन्यवाद।"
-        );
-
-    }
-
-
     /*======================================================
                     ENGLISH MESSAGE
     ======================================================*/
@@ -74,45 +46,6 @@ function getWhatsAppMessage() {
 
 function getWhatsAppPopupText() {
 
-    const language =
-        typeof getCurrentLanguage === "function"
-            ? getCurrentLanguage()
-            : "en";
-
-
-    /*======================================================
-                    HINDI
-    ======================================================*/
-
-    if (language === "hi") {
-
-        return {
-
-            title: "WhatsApp खोलें",
-
-            subtitle:
-                "हमसे संपर्क करने के लिए विकल्प चुनें।",
-
-            whatsapp:
-                "WhatsApp",
-
-            whatsappDescription:
-                "WhatsApp Messenger खोलें",
-
-            business:
-                "WhatsApp Business",
-
-            businessDescription:
-                "WhatsApp Business खोलें",
-
-            cancel:
-                "रद्द करें"
-
-        };
-
-    }
-
-
     /*======================================================
                     ENGLISH
     ======================================================*/
@@ -131,10 +64,10 @@ function getWhatsAppPopupText() {
             "Open WhatsApp Messenger",
 
         business:
-            "WhatsApp Business",
+            "Send WhatsApp Message",
 
         businessDescription:
-            "Open WhatsApp Business",
+            "Open chat with Jaiswal Vaivaahiki",
 
         cancel:
             "Cancel"
@@ -180,8 +113,7 @@ function showWhatsAppChoicePopup(event) {
 
 
     /*
-     * Get popup text according to
-     * current website language.
+     * Get English popup text.
      */
     const text =
         getWhatsAppPopupText();
@@ -547,116 +479,43 @@ function isAndroidDevice() {
 }
 
 
-/*==========================================================
-                OPEN NORMAL WHATSAPP
-==========================================================*/
+/* ==========================================
+   OPEN STANDARD WHATSAPP CHAT
+========================================== */
 
 function openNormalWhatsApp(message) {
 
-    const encodedMessage =
-        encodeURIComponent(message);
-
-
-    /*
-     * Android:
-     *
-     * Try to open normal WhatsApp specifically.
-     */
-    if (isAndroidDevice()) {
-
-        const intentUrl =
-            "intent://send?phone=" +
-            WHATSAPP_CONFIG.phoneNumber +
-            "&text=" +
-            encodedMessage +
-            "#Intent;" +
-            "scheme=whatsapp;" +
-            "package=com.whatsapp;" +
-            "end";
-
-
-        window.location.href =
-            intentUrl;
-
-
-        return;
-
-    }
-
-
-    /*
-     * Desktop / iPhone / other devices:
-     *
-     * Use standard WhatsApp URL.
-     */
-    const url =
+    const whatsappURL =
         "https://wa.me/" +
         WHATSAPP_CONFIG.phoneNumber +
         "?text=" +
-        encodedMessage;
+        encodeURIComponent(message);
 
-
-    window.open(
-        url,
-        "_blank"
-    );
+    window.location.href = whatsappURL;
 
 }
 
 
-/*==========================================================
-                OPEN WHATSAPP BUSINESS
-==========================================================*/
+/* ==========================================
+   OPEN WHATSAPP CHAT WITH BUSINESS NUMBER
+========================================== */
 
 function openBusinessWhatsApp(message) {
 
-    const encodedMessage =
-        encodeURIComponent(message);
+    const phoneNumber = WHATSAPP_CONFIG.phoneNumber;
 
+    const encodedMessage = encodeURIComponent(message);
 
-    /*
-     * Android:
-     *
-     * WhatsApp Business package.
-     */
-    if (isAndroidDevice()) {
+    // Standard WhatsApp click-to-chat link.
+    // Does not force installation of WhatsApp Business.
 
-        const intentUrl =
-            "intent://send?phone=" +
-            WHATSAPP_CONFIG.phoneNumber +
-            "&text=" +
-            encodedMessage +
-            "#Intent;" +
-            "scheme=whatsapp;" +
-            "package=com.whatsapp.w4b;" +
-            "end";
-
-
-        window.location.href =
-            intentUrl;
-
-
-        return;
-
-    }
-
-
-    /*
-     * Desktop / iPhone / other devices:
-     *
-     * Standard WhatsApp fallback.
-     */
-    const url =
+    const whatsappURL =
         "https://wa.me/" +
-        WHATSAPP_CONFIG.phoneNumber +
+        phoneNumber +
         "?text=" +
         encodedMessage;
 
-
-    window.open(
-        url,
-        "_blank"
-    );
+    window.location.href = whatsappURL;
 
 }
 
@@ -668,7 +527,7 @@ function openBusinessWhatsApp(message) {
 function openWhatsApp(type) {
 
     /*
-     * Get language-specific message.
+     * Get English message.
      */
     const message =
         getWhatsAppMessage();
@@ -768,7 +627,6 @@ function initializeWhatsAppButton() {
                 "true";
 
 
-
             button.addEventListener("click", function(event) {
 
                 event.preventDefault();
@@ -831,3 +689,8 @@ window.openWhatsApp =
 
 window.closeWhatsAppChoicePopup =
     closeWhatsAppChoicePopup;
+
+
+/*==========================================================
+                END OF WHATSAPP.JS
+==========================================================*/

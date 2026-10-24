@@ -57,14 +57,16 @@ function initializeNavbar() {
     */
 
     const bsCollapse =
-        navbarCollapse
-            ? new bootstrap.Collapse(
-                navbarCollapse,
-                {
-                    toggle: false
-                }
-            )
-            : null;
+    navbarCollapse &&
+    typeof bootstrap !== "undefined" &&
+    bootstrap.Collapse
+        ? new bootstrap.Collapse(
+            navbarCollapse,
+            {
+                toggle: false
+            }
+        )
+        : null;
 
 
     /*======================================================

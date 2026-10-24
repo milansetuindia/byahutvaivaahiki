@@ -1,3 +1,4 @@
+
 /*
 ============================================================
                     GALLERY.JS
@@ -56,7 +57,6 @@ const GALLERY_STATE = {
                 DOM REFERENCES
 ============================================================
 */
-
 
 const GALLERY_DOM = {
 
@@ -206,7 +206,6 @@ function validateGalleryImage(file) {
 */
 
 
-
 function readGalleryImage(file) {
 
     return new Promise((resolve, reject) => {
@@ -234,12 +233,21 @@ function readGalleryImage(file) {
                 const ctx = canvas.getContext("2d");
 
                 if (!ctx) {
+
                     reject(new Error("Canvas unavailable"));
+
                     return;
+
                 }
 
                 ctx.fillStyle = "#ffffff";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillRect(
+                    0,
+                    0,
+                    canvas.width,
+                    canvas.height
+                );
 
                 ctx.drawImage(
                     img,
@@ -256,11 +264,13 @@ function readGalleryImage(file) {
             };
 
             img.onerror = reject;
+
             img.src = reader.result;
 
         };
 
         reader.onerror = reject;
+
         reader.readAsDataURL(file);
 
     });
@@ -319,15 +329,11 @@ async function processGalleryImage(
     try {
 
         const image =
-
             await readGalleryImage(file);
 
         updateImagePreview(
-
             previewElement,
-
             image
-
         );
 
         return image;
@@ -339,15 +345,11 @@ async function processGalleryImage(
         console.error(error);
 
         galleryMessage(
-
             "Unable to read image."
-
         );
 
         resetImagePreview(
-
             previewElement
-
         );
 
         return null;
@@ -355,12 +357,6 @@ async function processGalleryImage(
     }
 
 }
-
-
-
-
-
-
 
 
 /*
@@ -422,15 +418,6 @@ async function handleProfilePhotoUpload(event) {
 
             delete fileNameElement.dataset.selected;
 
-            if (
-                typeof updateCustomFileUploadLanguage ===
-                "function"
-            ) {
-
-                updateCustomFileUploadLanguage();
-
-            }
-
         }
 
         return;
@@ -443,13 +430,14 @@ async function handleProfilePhotoUpload(event) {
 
 
     biodata.photos.profilePhoto = {
-
         preview: image
-
     };
 
-
     autoSaveGallery();
+
+    if (typeof saveBiodata === "function") {
+        saveBiodata();
+    }
 
     refreshGalleryReview();
 
@@ -460,7 +448,6 @@ async function handleProfilePhotoUpload(event) {
     );
 
 }
-
 
 
 /*
@@ -488,7 +475,6 @@ function registerGalleryEvents() {
 }
 
 
-
 /*
 ============================================================
             STEP 5 - PHOTO MANAGEMENT
@@ -501,7 +487,6 @@ function registerGalleryEvents() {
                 REMOVE PHOTO
 ============================================================
 */
-
 
 function removeProfilePhoto() {
 
@@ -528,7 +513,6 @@ function removeProfilePhoto() {
     galleryLog("Profile photo removed.");
 
 }
-
 
 
 /*
@@ -559,7 +543,6 @@ function getUploadedPhotoCount() {
 }
 
 
-
 /*
 ============================================================
             STEP 6 - STORAGE
@@ -584,7 +567,6 @@ function saveGallery() {
             JSON.stringify({
 
                 profilePhoto:
-
                     GALLERY_STATE.profilePhoto,
 
             })
@@ -627,7 +609,6 @@ function loadGallery() {
         const gallery = JSON.parse(data);
 
         GALLERY_STATE.profilePhoto =
-
             gallery.profilePhoto || null;
 
     }
@@ -646,7 +627,6 @@ function loadGallery() {
                 RESTORE
 ============================================================
 */
-
 
 function restoreGallery() {
 
@@ -673,7 +653,6 @@ function restoreGallery() {
     refreshGalleryReview();
 
 }
-
 
 
 /*
@@ -706,8 +685,6 @@ function autoSaveGallery() {
 }
 
 
-
-
 /*
 ============================================================
             STEP 7 - REVIEW PAGE
@@ -717,7 +694,7 @@ function autoSaveGallery() {
 
 /*
 ============================================================
-            CREATE REVIEW IMAGE
+                CREATE REVIEW IMAGE
 ============================================================
 */
 
@@ -740,7 +717,7 @@ function createReviewImage(imageSource) {
 
 /*
 ============================================================
-            PLACEHOLDER
+                PLACEHOLDER
 ============================================================
 */
 
@@ -751,7 +728,6 @@ function createGalleryPlaceholder() {
     placeholder.className = "text-center";
 
     placeholder.innerHTML =
-
         "<p>No profile photo uploaded.</p>";
 
     return placeholder;
@@ -761,7 +737,7 @@ function createGalleryPlaceholder() {
 
 /*
 ============================================================
-            UPDATE REVIEW
+                UPDATE REVIEW
 ============================================================
 */
 
@@ -802,7 +778,7 @@ function updateReviewGallery() {
 
 /*
 ============================================================
-            REFRESH REVIEW
+                REFRESH REVIEW
 ============================================================
 */
 
@@ -811,13 +787,10 @@ function refreshGalleryReview() {
     updateReviewGallery();
 
     galleryLog(
-
         "Review Updated"
-
     );
 
 }
-
 
 
 /*
@@ -829,7 +802,7 @@ function refreshGalleryReview() {
 
 /*
 ============================================================
-            GET PROFILE PHOTO
+                GET PROFILE PHOTO
 ============================================================
 */
 
@@ -842,7 +815,7 @@ function getProfilePhotoForPDF() {
 
 /*
 ============================================================
-            PDF DATA
+                PDF DATA
 ============================================================
 */
 
@@ -851,7 +824,6 @@ function getGalleryForPDF() {
     return {
 
         profile:
-
             GALLERY_STATE.profilePhoto
 
     };
@@ -861,7 +833,7 @@ function getGalleryForPDF() {
 
 /*
 ============================================================
-            PDF PREVIEW
+                PDF PREVIEW
 ============================================================
 */
 
@@ -880,7 +852,7 @@ function updatePDFGalleryPreview() {
 
 /*
 ============================================================
-            PRINT
+                PRINT
 ============================================================
 */
 
@@ -893,7 +865,7 @@ function prepareGalleryForPrint() {
 
 /*
 ============================================================
-            SYNCHRONIZE
+                SYNCHRONIZE
 ============================================================
 */
 
@@ -902,7 +874,6 @@ function synchronizeGalleryWithPDF() {
     prepareGalleryForPrint();
 
 }
-
 
 
 /*
@@ -931,15 +902,12 @@ function getGalleryStatus() {
     return {
 
         initialized:
-
             GALLERY_STATE.initialized,
 
         uploaded:
-
             hasProfilePhoto(),
 
         count:
-
             getUploadedPhotoCount()
 
     };
@@ -963,13 +931,10 @@ function printGallerySummary() {
 function optimizeGallery() {
 
     galleryLog(
-
         "Gallery Optimized"
-
     );
 
 }
-
 
 
 /*
@@ -982,9 +947,7 @@ function optimizeGallery() {
 function optimizeGalleryModule() {
 
     galleryLog(
-
         "Gallery Module Optimized"
-
     );
 
 }
@@ -993,9 +956,7 @@ function optimizeGalleryModule() {
 function initializeGalleryAccessibility() {
 
     galleryLog(
-
         "Accessibility Initialized"
-
     );
 
 }
@@ -1010,18 +971,15 @@ function finalizeGalleryModule() {
     printGallerySummary();
 
     galleryLog(
-
         "Gallery Ready"
-
     );
 
 }
 
 
-
 /*
 ============================================================
-            DOM READY
+                DOM READY
 ============================================================
 */
 
@@ -1040,7 +998,11 @@ document.addEventListener(
 );
 
 
-
+/*
+============================================================
+                SAVE PHOTO DATA
+============================================================
+*/
 
 function savePhotoData() {
 
@@ -1055,3 +1017,9 @@ function savePhotoData() {
     return true;
 
 }
+
+/*
+============================================================
+                    END OF GALLERY.JS
+============================================================
+*/

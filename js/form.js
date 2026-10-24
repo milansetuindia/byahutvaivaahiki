@@ -1,120 +1,136 @@
-/*==========================================================
-                    FORM.JS
-            STEP 2 - FORM CONTROLLER
-==========================================================*/
 
-/*
-============================================================
-                GLOBAL VARIABLES
-============================================================
-*/
+/* ==========================================================
+                        FORM.JS
+                   JAISWAL VAIVAAHIKI
+
+                  ENGLISH ONLY VERSION
+
+                   TWO PDF TEMPLATES
+                     10 FORM STEPS
+
+                   BAAN DETAILS ADDED
+========================================================== */
+
+
+/* ==========================================================
+                    GLOBAL VARIABLES
+========================================================== */
 
 let currentStep = 1;
 
 const totalSteps = 10;
 
-/*
-============================================================
-                COMPLETE BIODATA
-============================================================
-*/
 
+/* ==========================================================
+                    COMPLETE BIODATA
+========================================================== */
 
 const biodata = {
 
-    personal:{},
+    personal: {},
 
-    education:{},
+    education: {},
 
-    work:{},
+    work: {},
 
-    family:{},
+    family: {},
 
-    partner:{},
+    baan: {},
+
+    partner: {},
 
     contact: {
-
         mobileNumber: "",
-
         currentAddress: "",
-
         permanentAddress: ""
-
     },
 
     declaration: {
-
+        declaration: "",
         senderName: "",
-
         senderMobile: ""
-
     },
 
-    photos:{},
+    photos: {},
 
     template: "template1"
 
 };
 
 
+/* ==========================================================
+                    FORM CONFIGURATION
+========================================================== */
+
+const FORM_CONFIG = {
+    totalSteps: 10,
+    version: "2.0.0",
+    autoSave: false,
+    debug: false,
+    allowedTemplates: ["template1", "template2"]
+};
 
 
-/*
-============================================================
-                INITIALIZATION
-============================================================
-*/
+/* ==========================================================
+                    DOM INITIALIZATION
+========================================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
 
     initializeForm();
 
+    initializeCreateBiodataButton();
+
+    initializeTemplateCardSelection();
+
+    debugLog("Form Module", "Initialized Successfully");
+
 });
 
 
-/*
-============================================================
-                INITIALIZE FORM
-============================================================
-*/
+/* ==========================================================
+                    INITIALIZE FORM
+========================================================== */
 
-function initializeForm(){
+function initializeForm() {
 
-    const nextButton = document.getElementById("nextStepBtn");
+    const nextButton =
+        document.getElementById("nextStepBtn");
 
-    const previousButton = document.getElementById("previousStepBtn");
+    const previousButton =
+        document.getElementById("previousStepBtn");
 
-    if(nextButton){
-
+    if (nextButton) {
         nextButton.addEventListener("click", nextStep);
-
     }
 
-    if(previousButton){
-
+    if (previousButton) {
         previousButton.addEventListener("click", previousStep);
-
     }
 
     showStep(currentStep);
-
 }
 
 
-/*
-============================================================
-                SHOW STEP
-============================================================
-*/
+/* ==========================================================
+                    SHOW FORM STEP
+========================================================== */
 
+function showStep(step) {
 
-function showStep(step){
+    if (step < 1 || step > totalSteps) {
+        return;
+    }
 
-    const steps = document.querySelectorAll(".form-step");
+    currentStep = step;
 
-    steps.forEach((section) => {
+    const steps =
+        document.querySelectorAll(".form-step");
+
+    steps.forEach(section => {
 
         section.classList.add("d-none");
+
         section.classList.remove("active-step");
 
     });
@@ -123,20 +139,22 @@ function showStep(step){
         `.form-step[data-step="${step}"]`
     );
 
-    if(currentSection){
+    if (currentSection) {
 
         currentSection.classList.remove("d-none");
+
         currentSection.classList.add("active-step");
 
     }
 
     updateProgressBar();
+
     updateNavigationButtons();
 
-    // Scroll to the beginning of the form
-    const formSection = document.getElementById(
-        "biodataFormSection"
-    );
+    updateSelectedTemplateCard();
+
+    const formSection =
+        document.getElementById("biodataFormSection");
 
     if (
         formSection &&
@@ -144,7 +162,8 @@ function showStep(step){
     ) {
 
         const navbarHeight =
-            document.querySelector(".custom-navbar")?.offsetHeight || 90;
+            document.querySelector(".custom-navbar")
+                ?.offsetHeight || 90;
 
         const topPosition =
             formSection.getBoundingClientRect().top +
@@ -158,55 +177,49 @@ function showStep(step){
         });
 
     }
-
 }
 
 
-/*
-============================================================
-                NEXT STEP
-============================================================
-*/
+/* ==========================================================
+                    NEXT STEP
+========================================================== */
 
-function nextStep(){
+function nextStep() {
 
-    /*
-    ============================================
-            VALIDATE CURRENT STEP
-    ============================================
-    */
-
-    console.log("nextStep() called");
-
-    if(!validateCurrentStep(currentStep)){
-
+    if (currentStep < 1 || currentStep > totalSteps) {
         return;
-
     }
 
+    /* Validate current step */
 
-    /*
-    ============================================
-            SAVE CURRENT STEP DATA
-    ============================================
-    */
+    if (
+        typeof validateCurrentStep === "function" &&
+        !validateCurrentStep(currentStep)
+    ) {
+        return;
+    }
 
-    switch(currentStep){
+    /* Save current step */
+
+    switch (currentStep) {
 
         case 1:
             savePersonalData();
             break;
 
         case 2:
+            // Education & Career share the same visible step.
             saveEducationData();
-            break;
-
-        case 3:
             saveWorkData();
             break;
 
-        case 4:
+        case 3:
             saveFamilyData();
+            break;
+
+        case 4:
+            // All five Baan fields are optional.
+            saveBaanData();
             break;
 
         case 5:
@@ -218,136 +231,104 @@ function nextStep(){
             break;
 
         case 7:
-
-            if(!savePhotoData()){
+            if (
+                typeof savePhotoData === "function" &&
+                !savePhotoData()
+            ) {
                 return;
             }
-
             break;
 
         case 8:
-
             saveDeclarationData();
 
-            /*
-            Validate complete biodata
-            before moving to template selection
-            */
-
-            if(!validateCompleteForm()){
-
+            if (
+                typeof validateCompleteForm === "function" &&
+                !validateCompleteForm()
+            ) {
                 return;
-
             }
-
             break;
-
 
         case 9:
-
-            /*
-            Save selected template
-            */
-
-            if(!saveSelectedTemplate()){
-
+            if (!saveSelectedTemplate()) {
                 return;
-
             }
 
-            /*
-            Prepare review page
-            */
+            saveAllFormData();
 
             populateReview();
-
             break;
 
-    }
-
-
-    /*
-    ============================================
-            FINAL STEP
-    ============================================
-    */
-
-    if(currentStep === totalSteps){
-
-        completeForm();
-
-        return;
+        case 10:
+            completeForm();
+            return;
 
     }
 
+    /* Auto save */
 
-    /*
-    ============================================
-            MOVE TO NEXT STEP
-    ============================================
-    */
+    if (typeof saveBiodata === "function") {
+        saveBiodata();
+    }
 
-    currentStep++;
+    /* Move forward */
 
-    showStep(currentStep);
+    if (currentStep < totalSteps) {
 
+        currentStep++;
+
+        showStep(currentStep);
+
+    }
 }
 
 
+/* ==========================================================
+                    PREVIOUS STEP
+========================================================== */
 
-/*
-============================================================
-                PREVIOUS STEP
-============================================================
-*/
+function previousStep() {
 
-function previousStep(){
-
-    if(currentStep <= 1){
-
+    if (currentStep <= 1) {
         return;
-
     }
 
     currentStep--;
 
     showStep(currentStep);
-
 }
 
 
-/*
-============================================================
-                UPDATE PROGRESS BAR
-============================================================
-*/
+/* ==========================================================
+                    UPDATE PROGRESS BAR
+========================================================== */
 
-function updateProgressBar(){
+function updateProgressBar() {
 
-    const progressBar = document.getElementById("formProgressBar");
+    const progressBar =
+        document.getElementById("formProgressBar");
 
-    if(!progressBar){
-
+    if (!progressBar) {
         return;
-
     }
 
-    const percentage = (currentStep / totalSteps) * 100;
+    const percentage =
+        (currentStep / totalSteps) * 100;
 
     progressBar.style.width = percentage + "%";
 
-    progressBar.innerHTML = currentStep + " / " + totalSteps;
-
+    progressBar.textContent =
+        currentStep + " / " + totalSteps;
 }
 
 
-/*
-============================================================
-                UPDATE BUTTONS
-============================================================
-*/
+/* ==========================================================
+                    NAVIGATION BUTTONS
+                    ENGLISH ONLY
+========================================================== */
 
-function updateNavigationButtons(){
+function updateNavigationButtons() {
 
     const previousButton =
         document.getElementById("previousStepBtn");
@@ -355,268 +336,305 @@ function updateNavigationButtons(){
     const nextButton =
         document.getElementById("nextStepBtn");
 
-
-    if(previousButton){
+    if (previousButton) {
 
         previousButton.disabled =
             currentStep === 1;
 
     }
 
+    if (nextButton) {
 
-    if(nextButton){
-
-        if(currentStep === totalSteps){
-
-            const finishText =
-                typeof translateText === "function"
-                    ? translateText("Finish")
-                    : "Finish";
-
+        if (currentStep === totalSteps) {
 
             nextButton.innerHTML = `
-                ${finishText}
+                Finish
                 <i class="fa-solid fa-check"></i>
             `;
 
-        }
-
-        else{
-
-            const nextText =
-                typeof translateText === "function"
-                    ? translateText("Next")
-                    : "Next";
-
+        } else {
 
             nextButton.innerHTML = `
-                ${nextText}
+                Next
                 <i class="fa-solid fa-arrow-right"></i>
             `;
 
         }
+    }
+}
+
+
+/* ==========================================================
+                    GET INPUT VALUE
+========================================================== */
+
+function getInputValue(id) {
+
+    const element =
+        document.getElementById(id);
+
+    if (!element) {
+        return "";
+    }
+
+    if (element.type === "checkbox") {
+        return element.checked ? element.value : "";
+    }
+
+    return String(element.value || "").trim();
+}
+
+
+/* ==========================================================
+                    SAVE PERSONAL DATA
+========================================================== */
+
+function savePersonalData() {
+
+    const birthHour = getInputValue("birthHour");
+
+    const birthMinute = getInputValue("birthMinute");
+
+    const birthPeriod = getInputValue("birthPeriod");
+
+    let timeOfBirth = "";
+
+    if (birthHour && birthMinute) {
+
+        timeOfBirth =
+            birthHour + ":" + birthMinute +
+            (birthPeriod ? " " + birthPeriod : "");
 
     }
 
+    biodata.personal = {
+
+        fullName: getInputValue("fullName"),
+
+        dob: getInputValue("dob"),
+
+        timeOfBirth: timeOfBirth,
+
+        placeOfBirth: getInputValue("placeOfBirth"),
+
+        religion: getInputValue("religion"),
+
+        gotra: getInputValue("gotra"),
+
+        caste: getInputValue("caste"),
+
+        rashi: getInputValue("rashi"),
+
+        gan: getInputValue("gan"),
+
+        height: getInputValue("height"),
+
+        complexion: getInputValue("complexion"),
+
+        maritalStatus: getInputValue("maritalStatus"),
+
+        manglik: getInputValue("manglik"),
+
+        nativePlace: getInputValue("nativePlace"),
+
+        // This is the person's spoken language,
+        // not the website interface language.
+
+        language: getInputValue("language"),
+
+        diet: getInputValue("diet"),
+
+        hobbies: getInputValue("hobbies"),
+
+        other: getInputValue("other")
+
+    };
+
+    debugLog("Personal Data Saved", biodata.personal);
 }
 
-/*==========================================================
-            STEP 6 - STORE EDUCATION DATA
-==========================================================*/
 
-/*
-============================================================
-                TEMPORARY FORM DATA
-============================================================
-*/
+/* ==========================================================
+                    SAVE EDUCATION DATA
+========================================================== */
 
-
-/*
-============================================================
-            SAVE EDUCATION INFORMATION
-============================================================
-*/
-
-
-function saveEducationData(){
+function saveEducationData() {
 
     biodata.education = {
 
-        highestQualification : getInputValue("highestQualification"),
+        highestQualification:
+            getInputValue("highestQualification"),
 
-        college : getInputValue("college"),
+        college:
+            getInputValue("college"),
 
-        Board12th : getInputValue("Board12th"),
+        Board12th:
+            getInputValue("Board12th"),
 
-        Board10th : getInputValue("Board10th"),
-
-        specialSkill : getInputValue("specialSkill"),
-
-        educationOther : getInputValue("educationOther")
+        Board10th:
+            getInputValue("Board10th")
 
     };
 
-    debugLog(
-        "Education Data Saved",
-        biodata.education
-    );
-
+    debugLog("Education Data Saved", biodata.education);
 }
 
 
+/* ==========================================================
+                    SAVE WORK & CAREER
+========================================================== */
 
-
-function saveWorkData(){
+function saveWorkData() {
 
     biodata.work = {
 
-        profession : getInputValue("profession"),
+        // These two fields appear inside Education & Career
+        // in HTML, but remain in biodata.work for
+        // compatibility with preview.js.
 
-        designation : getInputValue("designation"),
+        profession:
+            getInputValue("profession"),
 
-        organization : getInputValue("organization"),
-
-        workPlace : getInputValue("workPlace"),
-
-        income : getInputValue("income")
+        income:
+            getInputValue("income")
 
     };
 
-    debugLog(
-
-        "Work Data Saved",
-
-        biodata.work
-
-    );
-
+    debugLog("Work Data Saved", biodata.work);
 }
 
 
+/* ==========================================================
+                    SAVE FAMILY DATA
+========================================================== */
 
-/*
-============================================================
-            GET INPUT VALUE
-============================================================
-*/
-
-function getInputValue(id){
-
-    const element = document.getElementById(id);
-
-    if(!element){
-
-        return "";
-
-    }
-
-    return element.value.trim();
-
-}
-
-
-
-
-/*==========================================================
-            STEP 8 - STORE FAMILY DATA
-==========================================================*/
-
-/*
-============================================================
-            SAVE FAMILY INFORMATION
-============================================================
-*/
-
-function saveFamilyData(){
+function saveFamilyData() {
 
     biodata.family = {
 
-        fatherName : getInputValue("fatherName"),
+        fatherName:
+            getInputValue("fatherName"),
 
-        fatherOccupation : getInputValue("fatherOccupation"),
+        fatherOccupation:
+            getInputValue("fatherOccupation"),
 
-        motherName : getInputValue("motherName"),
+        motherName:
+            getInputValue("motherName"),
 
-        motherOccupation : getInputValue("motherOccupation"),
+        motherOccupation:
+            getInputValue("motherOccupation"),
 
-        siblingsDetails : getInputValue("siblingsDetails")
+        siblingsDetails:
+            getInputValue("siblingsDetails")
 
     };
 
-    debugLog(
-        "Family Data Saved",
-        biodata.family
-    );
+    // Baan is now a separate Step 4.
 
+    debugLog("Family Data Saved", biodata.family);
 }
 
 
+/* ==========================================================
+                    SAVE BAAN DETAILS
+========================================================== */
+
+function saveBaanData() {
+
+    biodata.baan = {
+
+        mulbaan:
+            getInputValue("mulbaan"),
+
+        ajiaur:
+            getInputValue("ajiaur"),
+
+        naniaur:
+            getInputValue("naniaur"),
+
+        sasural:
+            getInputValue("sasural"),
+
+        sasKeNaihar:
+            getInputValue("sasKeNaihar")
+
+    };
+
+    debugLog("Baan Details Saved", biodata.baan);
+}
 
 
+/* ==========================================================
+                    SAVE PARTNER PREFERENCE
+========================================================== */
 
-/*==========================================================
-            STEP 10 - STORE PARTNER PREFERENCE DATA
-==========================================================*/
-
-/*
-============================================================
-            SAVE PARTNER PREFERENCE
-============================================================
-*/
-
-function savePartnerData(){
+function savePartnerData() {
 
     biodata.partner = {
 
-        preferredQualification :
+        preferredQualification:
             getInputValue("preferredQualification"),
 
-        preferredProfession :
+        preferredProfession:
             getInputValue("preferredProfession"),
 
-        preferredLocation :
+        preferredLocation:
             getInputValue("preferredLocation"),
 
-        preferredCaste :
+        preferredCaste:
             getInputValue("preferredCaste"),
 
-        otherExpectations :
+        otherExpectations:
             getInputValue("otherExpectations")
 
     };
 
     debugLog(
-        "Partner Preference Saved",
+        "Partner Preferences Saved",
         biodata.partner
     );
 }
 
 
+/* ==========================================================
+                    SAVE CONTACT DETAILS
+========================================================== */
 
-/*==========================================================
-            STEP 12 - STORE CONTACT DETAILS
-==========================================================*/
-
-/*
-============================================================
-            SAVE CONTACT INFORMATION
-============================================================
-*/
-
-function saveContactData(){
+function saveContactData() {
 
     biodata.contact = {
 
-        mobileNumber : getInputValue("mobileNumber"),
+        mobileNumber:
+            getInputValue("mobileNumber"),
 
-        currentAddress : getInputValue("currentAddress"),
+        currentAddress:
+            getInputValue("currentAddress"),
 
-        permanentAddress : getInputValue("permanentAddress"),
+        permanentAddress:
+            getInputValue("permanentAddress")
 
     };
 
-    debugLog(
-        "Contact Details Saved",
-        biodata.contact
-    );
-
+    debugLog("Contact Data Saved", biodata.contact);
 }
 
-/*
-============================================================
-            SAVE DECLARATION INFORMATION
-============================================================
-*/
 
-function saveDeclarationData(){
+/* ==========================================================
+                    SAVE DECLARATION DETAILS
+========================================================== */
+
+function saveDeclarationData() {
 
     biodata.declaration = {
 
-        declaration: document.getElementById("declaration").value,
+        declaration:
+            getInputValue("declaration"),
 
-        senderName: getInputValue("senderName"),
+        senderName:
+            getInputValue("senderName"),
 
-        senderMobile: getInputValue("senderMobile")
+        senderMobile:
+            getInputValue("senderMobile")
 
     };
 
@@ -624,135 +642,153 @@ function saveDeclarationData(){
         "Declaration Data Saved",
         biodata.declaration
     );
-
 }
 
 
-/*
-============================================================
-            SAVE SELECTED TEMPLATE
-============================================================
-*/
+/* ==========================================================
+                    SAVE SELECTED TEMPLATE
 
-function saveSelectedTemplate(){
+                    ONLY TEMPLATE 1 & 2
+========================================================== */
+
+function saveSelectedTemplate() {
 
     const selectedTemplate = document.querySelector(
-
         'input[name="biodataTemplate"]:checked'
-
     );
 
-    if(!selectedTemplate){
+    if (!selectedTemplate) {
 
         alert("Please select a biodata template.");
 
         return false;
+    }
+
+    const templateId = selectedTemplate.value;
+
+    if (!FORM_CONFIG.allowedTemplates.includes(templateId)) {
+
+        alert("Invalid template selected.");
+
+        return false;
+    }
+
+    biodata.template = templateId;
+
+    debugLog("Template Selected", biodata.template);
+
+    return true;
+}
+
+
+/* ==========================================================
+                    SAVE ALL FORM DATA
+
+                 SHARED BY BOTH TEMPLATES
+========================================================== */
+
+function saveAllFormData() {
+
+    savePersonalData();
+
+    saveEducationData();
+
+    saveWorkData();
+
+    saveFamilyData();
+
+    saveBaanData();
+
+    savePartnerData();
+
+    saveContactData();
+
+    saveDeclarationData();
+
+    const selectedTemplate = document.querySelector(
+        'input[name="biodataTemplate"]:checked'
+    );
+
+    if (
+        selectedTemplate &&
+        FORM_CONFIG.allowedTemplates.includes(
+            selectedTemplate.value
+        )
+    ) {
+
+        biodata.template = selectedTemplate.value;
 
     }
 
-    biodata.template = selectedTemplate.value;
-
-    debugLog(
-
-        "Template Selected",
-
-        biodata.template
-
-    );
-
-    return true;
-
+    if (typeof saveBiodata === "function") {
+        saveBiodata();
+    }
 }
 
 
-/*
-============================================================
-                SAVE PERSONAL DETAILS
-============================================================
-*/
+/* ==========================================================
+                    REVIEW PAGE
+========================================================== */
 
-
-function savePersonalData(){
-
-    biodata.personal = {
-
-        fullName : getInputValue("fullName"),
-
-        dob : getInputValue("dob"),
-
-        timeOfBirth:
-
-            getInputValue("birthHour")
-
-            + ":"
-
-            + getInputValue("birthMinute")
-
-            + " "
-
-            + getInputValue("birthPeriod"),
-
-        placeOfBirth : getInputValue("placeOfBirth"),
-
-        religion : getInputValue("religion"),
-
-        gotra : getInputValue("gotra"),
-
-        caste : getInputValue("caste"),
-
-        subCaste : getInputValue("subCaste"),
-
-        rashi : getInputValue("rashi"),
-
-        gan : getInputValue("gan"),
-
-        height : getInputValue("height"),
-
-        complexion : getInputValue("complexion"),
-
-        maritalStatus : getInputValue("maritalStatus"),
-
-        manglik : getInputValue("manglik"),
-
-        language : getInputValue("language"),
-
-        diet : getInputValue("diet"),
-
-        hobbies : getInputValue("hobbies"),
-
-        other : getInputValue("other")
-
-    };
-
-}
-
-
-/*
-============================================================
-                REVIEW PAGE
-============================================================
-*/
-
-function populateReview(){
+function populateReview() {
 
     fillReviewSection(
         "reviewPersonal",
         biodata.personal
     );
 
-    fillReviewSection(
-        "reviewEducation",
-        biodata.education
-    );
+    // The template has one Education & Career section.
+    // Combine both existing biodata objects for display.
 
     fillReviewSection(
-        "reviewWork",
-        biodata.work
+        "reviewEducation",
+        {
+            highestQualification:
+                biodata.education.highestQualification,
+
+            college:
+                biodata.education.college,
+
+            Board12th:
+                biodata.education.Board12th,
+
+            Board10th:
+                biodata.education.Board10th,
+
+            profession:
+                biodata.work.profession,
+
+            income:
+                biodata.work.income
+        }
     );
+
+    // Backward compatibility with older index.html versions.
+    // Do not display Work & Career twice.
+
+    const legacyWorkReview =
+        document.getElementById("reviewWork");
+
+    if (legacyWorkReview) {
+
+        legacyWorkReview.replaceChildren();
+
+        const legacyWorkCard =
+            legacyWorkReview.closest(".col-lg-6");
+
+        if (legacyWorkCard) {
+            legacyWorkCard.style.display = "none";
+        }
+    }
 
     fillReviewSection(
         "reviewFamily",
         biodata.family
+    );
+
+    fillReviewSection(
+        "reviewBaan",
+        biodata.baan
     );
 
     fillReviewSection(
@@ -763,459 +799,252 @@ function populateReview(){
     fillReviewSection(
         "reviewContact",
         {
-            mobileNumber: biodata.contact.mobileNumber
-        }
-    );
-
-    fillReviewSection(
-    "reviewDeclaration",
-        {
-            declaration: biodata.declaration.declaration,
-            senderName: biodata.declaration.senderName,
-            senderMobile: biodata.declaration.senderMobile
+            mobileNumber:
+                biodata.contact.mobileNumber
         }
     );
 
     fillReviewSection(
         "reviewAddress",
         {
-            currentAddress: biodata.contact.currentAddress,
-            permanentAddress: biodata.contact.permanentAddress
+            currentAddress:
+                biodata.contact.currentAddress,
+
+            permanentAddress:
+                biodata.contact.permanentAddress
         }
+    );
+
+    fillReviewSection(
+        "reviewDeclaration",
+        biodata.declaration
     );
 
     populatePhotoReview();
 
+    if (typeof renderPreviewContainer === "function") {
+        renderPreviewContainer();
+    }
+
+    debugLog("Review Page Populated", biodata);
 }
 
 
-
-
 /* ==========================================================
-        TRANSLATE REVIEW DROPDOWN VALUES
+                    REVIEW VALUE FORMAT
+                    ENGLISH ONLY
 ========================================================== */
 
 function formatReviewValue(key, value) {
 
-    if (value === null || value === undefined || value === "") {
+    if (
+        value === null ||
+        value === undefined ||
+        value === ""
+    ) {
         return "-";
     }
 
-    const translatedFields = [
-        "gan",
-        "maritalStatus",
-        "caste",
-        "manglik",
-        "diet"
-    ];
-
-    if (
-        getCurrentLanguage() === "hi" &&
-        translatedFields.includes(key)
-    ) {
-
-        return TRANSLATIONS.hi[String(value)] ?? value;
-
-    }
-
-    return value;
+    return String(value);
 }
 
 
-/*
-============================================================
-                REVIEW HELPER
-============================================================
-*/
+/* ==========================================================
+                    REVIEW HELPER
 
-function fillReviewSection(
+              SAFE TEXT RENDERING
+========================================================== */
 
-    containerId,
+function fillReviewSection(containerId, data) {
 
-    data
+    const container =
+        document.getElementById(containerId);
 
-){
+    if (!container) {
+        return;
+    }
 
-    const container = document.getElementById(containerId);
+    container.replaceChildren();
 
-    if(!container){
+    if (!data || Object.keys(data).length === 0) {
+
+        const message = document.createElement("p");
+
+        message.textContent = "No data available.";
+
+        container.appendChild(message);
 
         return;
-
     }
 
-    let html = "";
+    Object.entries(data).forEach(([key, value]) => {
 
-    for(const key in data){
+        const item = document.createElement("div");
 
-        html += `
+        item.className = "review-item";
 
-            <div class="review-item">
+        const label = document.createElement("strong");
 
-                <strong>
+        label.textContent = formatLabel(key) + ": ";
 
-                    ${formatLabel(key)}
+        const text = document.createElement("span");
 
-                </strong>
+        text.textContent = formatReviewValue(key, value);
 
-                :
+        item.appendChild(label);
 
-                ${formatReviewValue(key, data[key])}
+        item.appendChild(text);
 
-            </div>
+        container.appendChild(item);
 
-        `;
-
-    }
-
-    if(html === ""){
-
-        html = "<p>No data available.</p>";
-
-    }
-
-    container.innerHTML = html;
-
+    });
 }
 
 
-/*
-============================================================
-                PHOTO REVIEW
-============================================================
-*/
+/* ==========================================================
+                    PHOTO REVIEW
+========================================================== */
 
-function populatePhotoReview(){
+function populatePhotoReview() {
 
-    const container = document.getElementById("reviewPhotos");
+    const container =
+        document.getElementById("reviewPhotos");
 
-    if(!container){
+    if (!container) {
+        return;
+    }
+
+    container.replaceChildren();
+
+    const profilePhoto =
+        biodata.photos?.profilePhoto?.preview;
+
+    if (!profilePhoto) {
+
+        const message = document.createElement("p");
+
+        message.textContent = "No profile photo uploaded.";
+
+        container.appendChild(message);
 
         return;
-
     }
 
-    container.innerHTML = "";
+    const image = document.createElement("img");
 
-    for(const key in biodata.photos){
+    image.src = profilePhoto;
 
-        const photo = biodata.photos[key];
+    image.alt = "Profile Photo";
 
-        const image = document.createElement("img");
+    image.className = "img-fluid rounded shadow-sm";
 
-        image.src = photo.preview;
-
-        image.className =
-
-            "img-fluid rounded shadow-sm";
-
-        container.appendChild(image);
-
-    }
-
-}
-
-/*
-============================================================
-                LABEL FORMAT
-============================================================
-*/
-
-
-function formatLabel(text){
-
-    const labels = {
-
-        /* PERSONAL */
-        fullName: {
-            en: "Full Name",
-            hi: "पूरा नाम"
-        },
-
-        dob: {
-            en: "Date Of Birth",
-            hi: "जन्म तिथि"
-        },
-
-        timeOfBirth: {
-            en: "Time Of Birth",
-            hi: "जन्म का समय"
-        },
-
-        placeOfBirth: {
-            en: "Place Of Birth",
-            hi: "जन्म स्थान"
-        },
-
-        religion: {
-            en: "Religion",
-            hi: "धर्म"
-        },
-
-        gotra: {
-            en: "Gotra",
-            hi: "गोत्र"
-        },
-
-        caste: {
-            en: "Caste",
-            hi: "जाति"
-        },
-
-        subCaste: {
-            en: "Sub Caste",
-            hi: "उपजाति"
-        },
-
-        rashi: {
-            en: "Rashi",
-            hi: "राशि"
-        },
-
-        gan: {
-            en: "Gan",
-            hi: "गण"
-        },
-
-        height: {
-            en: "Height",
-            hi: "कद"
-        },
-
-        complexion: {
-            en: "Complexion",
-            hi: "रंग"
-        },
-
-        maritalStatus: {
-            en: "Marital Status",
-            hi: "वैवाहिक स्थिति"
-        },
-
-        manglik: {
-            en: "Manglik",
-            hi: "मांगलिक"
-        },
-
-        language: {
-            en: "Language",
-            hi: "भाषा"
-        },
-
-        diet: {
-            en: "Diet",
-            hi: "आहार"
-        },
-
-        hobbies: {
-            en: "Hobbies",
-            hi: "शौक"
-        },
-
-        other: {
-            en: "Other",
-            hi: "अन्य"
-        },
-
-
-        /* EDUCATION */
-        highestQualification: {
-            en: "Highest Qualification",
-            hi: "उच्चतम शैक्षणिक योग्यता"
-        },
-
-        college: {
-            en: "College",
-            hi: "कॉलेज"
-        },
-
-        Board12th: {
-            en: "12th Board",
-            hi: "12वीं बोर्ड"
-        },
-
-        Board10th: {
-            en: "10th Board",
-            hi: "10वीं बोर्ड"
-        },
-
-        specialSkill: {
-            en: "Special Skill",
-            hi: "विशेष कौशल"
-        },
-
-        educationOther: {
-            en: "Education Other",
-            hi: "अन्य शिक्षा"
-        },
-
-
-        /* WORK */
-        profession: {
-            en: "Profession",
-            hi: "पेशा"
-        },
-
-        designation: {
-            en: "Designation",
-            hi: "पद"
-        },
-
-        organization: {
-            en: "Organization",
-            hi: "संस्था"
-        },
-
-        workPlace: {
-            en: "Work Place",
-            hi: "कार्य स्थान"
-        },
-
-        income: {
-            en: "Income",
-            hi: "आय"
-        },
-
-
-        /* FAMILY */
-        fatherName: {
-            en: "Father's Name",
-            hi: "पिता का नाम"
-        },
-
-        fatherOccupation: {
-            en: "Father's Occupation",
-            hi: "पिता का व्यवसाय"
-        },
-
-        motherName: {
-            en: "Mother's Name",
-            hi: "माता का नाम"
-        },
-
-        motherOccupation: {
-            en: "Mother's Occupation",
-            hi: "माता का व्यवसाय"
-        },
-
-        siblingsDetails: {
-            en: "Siblings Details",
-            hi: "भाई-बहनों की जानकारी"
-        },
-
-
-        /* PARTNER */
-        preferredQualification: {
-            en: "Preferred Qualification",
-            hi: "पसंदीदा शैक्षणिक योग्यता"
-        },
-
-        preferredProfession: {
-            en: "Preferred Profession",
-            hi: "पसंदीदा पेशा"
-        },
-
-        preferredLocation: {
-            en: "Preferred Location",
-            hi: "पसंदीदा स्थान"
-        },
-
-        preferredCaste: {
-            en: "Preferred Caste",
-            hi: "पसंदीदा जाति"
-        },
-
-        otherExpectations: {
-            en: "Other Expectations",
-            hi: "अन्य अपेक्षाएँ"
-        },
-
-
-        /* CONTACT */
-        mobileNumber: {
-            en: "Mobile Number",
-            hi: "मोबाइल नंबर"
-        },
-
-
-        /* ADDRESS */
-        currentAddress: {
-            en: "Current Address",
-            hi: "वर्तमान पता"
-        },
-
-        permanentAddress: {
-            en: "Permanent Address",
-            hi: "स्थायी पता"
-        },
-
-
-        /* DECLARATION */
-        declaration: {
-            en: "Declaration",
-            hi: "घोषणा"
-        },
-
-        senderName: {
-            en: "Sender Name",
-            hi: "भेजने वाले का नाम"
-        },
-
-        senderMobile: {
-            en: "Sender Mobile",
-            hi: "भेजने वाले का मोबाइल नंबर"
-        }
-
-    };
-
-
-    const language =
-        typeof getCurrentLanguage === "function"
-            ? getCurrentLanguage()
-            : "en";
-
-
-    if(labels[text]){
-
-        return labels[text][language] ||
-               labels[text].en;
-
-    }
-
-
-    /*
-     * Fallback for any future field
-     */
-    return text
-        .replace(/([A-Z])/g," $1")
-        .replace(/^./,str => str.toUpperCase());
-
+    container.appendChild(image);
 }
 
 
+/* ==========================================================
+                    ENGLISH LABELS
+                    NO LANGUAGE.JS REQUIRED
+========================================================== */
+
+const FORM_FIELD_LABELS = {
+
+    /* PERSONAL */
+
+    fullName: "Full Name",
+    dob: "Date Of Birth",
+    timeOfBirth: "Time Of Birth",
+    placeOfBirth: "Place Of Birth",
+    religion: "Religion",
+    gotra: "Gotra",
+    caste: "Caste",
+    rashi: "Rashi",
+    gan: "Gan",
+    height: "Height",
+    complexion: "Complexion",
+    maritalStatus: "Marital Status",
+    manglik: "Manglik",
+    nativePlace: "Native Place",
+    language: "Language",
+    diet: "Diet",
+    hobbies: "Hobby",
+    other: "Others",
+
+    /* EDUCATION */
+
+    highestQualification: "Qualification",
+    college: "College",
+    Board12th: "12th Board",
+    Board10th: "10th Board",
+
+    /* WORK */
+
+    profession: "Profession",
+    income: "Annual Income",
+
+    /* FAMILY */
+
+    fatherName: "Father's Name",
+    fatherOccupation: "Father's Occupation",
+    motherName: "Mother's Name",
+    motherOccupation: "Mother's Occupation",
+    siblingsDetails: "Siblings Details",
+
+    /* BAAN */
+
+    mulbaan: "Mulbaan",
+    ajiaur: "Ajiaur",
+    naniaur: "Naniaur",
+    sasural: "Sasural",
+    sasKeNaihar: "Sas ke Naihar",
+
+    /* PARTNER */
+
+    preferredQualification: "Preferred Qualification",
+    preferredProfession: "Preferred Profession",
+    preferredLocation: "Preferred Location",
+    preferredCaste: "Preferred Caste",
+    otherExpectations: "Other Expectations",
+
+    /* CONTACT */
+
+    mobileNumber: "Mobile Number",
+
+    /* ADDRESS */
+
+    currentAddress: "Current Address",
+    permanentAddress: "Permanent Address",
+
+    /* DECLARATION */
+
+    declaration: "Declaration",
+    senderName: "Sender Name",
+    senderMobile: "Sender Mobile"
+
+};
 
 
-/*==========================================================
-            STEP 17 - OPEN BIODATA FORM
-==========================================================*/
+/* ==========================================================
+                    FORMAT FIELD LABEL
+========================================================== */
 
-document.addEventListener("DOMContentLoaded", () => {
+function formatLabel(key) {
 
-    initializeCreateBiodataButton();
+    if (FORM_FIELD_LABELS[key]) {
+        return FORM_FIELD_LABELS[key];
+    }
 
-});
-
-
-/*
-============================================================
-        INITIALIZE CREATE BIODATA BUTTON
-============================================================
-*/
+    return String(key)
+        .replace(/([a-z])([A-Z])/g, "$1 $2")
+        .replace(/^./, char => char.toUpperCase());
+}
 
 
+/* ==========================================================
+                    OPEN BIODATA FORM
+========================================================== */
 
-
-function initializeCreateBiodataButton(){
+function initializeCreateBiodataButton() {
 
     const heroButton =
         document.getElementById("createBiodataBtn");
@@ -1223,7 +1052,7 @@ function initializeCreateBiodataButton(){
     const previewButton =
         document.getElementById("previewCreateBtn");
 
-    if(heroButton){
+    if (heroButton) {
 
         heroButton.addEventListener(
             "click",
@@ -1232,7 +1061,7 @@ function initializeCreateBiodataButton(){
 
     }
 
-    if(previewButton){
+    if (previewButton) {
 
         previewButton.addEventListener(
             "click",
@@ -1240,230 +1069,181 @@ function initializeCreateBiodataButton(){
         );
 
     }
-
 }
 
 
+/* ==========================================================
+                    OPEN BIODATA FORM
+========================================================== */
 
+function openBiodataForm() {
 
+    const landingSections = [
+        "hero",
+        "features",
+        "support",
+        "join-portal",
+        "preview",
+        "how-it-works",
+        "faq",
+        "footer"
+    ];
 
-/*
-============================================================
-            OPEN BIODATA FORM
-============================================================
-*/
+    landingSections.forEach(hideSection);
 
-function openBiodataForm(){
+    const formSection =
+        document.getElementById("biodataFormSection");
 
-    /*
-    ============================================
-            HIDE LANDING PAGE SECTIONS
-    ============================================
-    */
-
-    hideSection("hero");
-
-    hideSection("features");
-
-    hideSection("support");
-
-    hideSection("join-portal");
-
-    hideSection("preview");
-
-    hideSection("how-it-works");
-
-    hideSection("faq");
-
-    hideSection("footer");
-
-
-    /*
-    ============================================
-            SHOW FORM SECTION
-    ============================================
-    */
-
-    const formSection = document.getElementById(
-
-        "biodataFormSection"
-
-    );
-
-    if(formSection){
+    if (formSection) {
 
         formSection.classList.remove("d-none");
 
+        formSection.style.display = "";
+
     }
-
-
-    /*
-    ============================================
-            RESET FORM
-    ============================================
-    */
 
     currentStep = 1;
 
     showStep(currentStep);
 
-
-    /*
-    ============================================
-            SCROLL TO TOP
-    ============================================
-    */
-
     window.scrollTo({
-
-        top:0,
-
-        behavior:"smooth"
-
+        top: 0,
+        behavior: "smooth"
     });
-
 }
 
 
-/*
-============================================================
-            HIDE SECTION
-============================================================
-*/
+/* ==========================================================
+                    HIDE SECTION
+========================================================== */
 
-function hideSection(id){
+function hideSection(id) {
 
     const section = document.getElementById(id);
 
-    if(section){
-
+    if (section) {
         section.style.display = "none";
-
     }
-
 }
 
 
-/*
-============================================================
-            SHOW SECTION
-============================================================
-*/
+/* ==========================================================
+                    SHOW SECTION
+========================================================== */
 
-function showSection(id){
+function showSection(id) {
 
     const section = document.getElementById(id);
 
-    if(section){
-
+    if (section) {
         section.style.display = "";
-
     }
-
 }
 
 
-/*
-============================================================
-        RETURN TO LANDING PAGE
-============================================================
-*/
+/* ==========================================================
+                    RETURN TO HOME PAGE
+========================================================== */
 
-function returnToLandingPage(){
+function returnToLandingPage() {
 
-    showSection("hero");
+    const landingSections = [
+        "hero",
+        "features",
+        "support",
+        "join-portal",
+        "preview",
+        "how-it-works",
+        "faq",
+        "footer"
+    ];
 
-    showSection("features");
+    landingSections.forEach(showSection);
 
-    showSection("preview");
+    const formSection =
+        document.getElementById("biodataFormSection");
 
-    showSection("how-it-works");
-
-    showSection("faq");
-
-    showSection("footer");
-
-    const formSection = document.getElementById(
-
-        "biodataFormSection"
-
-    );
-
-    if(formSection){
-
+    if (formSection) {
         formSection.classList.add("d-none");
-
     }
 
     window.scrollTo({
-
-        top:0,
-
-        behavior:"smooth"
-
+        top: 0,
+        behavior: "smooth"
     });
-
 }
 
 
+/* ==========================================================
+                    RESET COMPLETE FORM
+========================================================== */
 
+function resetCompleteForm() {
 
+    const form =
+        document.querySelector("#multiStepForm");
 
-/*==========================================================
-            STEP 18 - FINAL CLEANUP
-==========================================================*/
+    if (form) {
 
-/*
-============================================================
-                FORM CONFIGURATION
-============================================================
-*/
+        // multiStepForm is a <div>, not an HTML <form>.
+        // Reset each field without calling form.reset().
 
-const FORM_CONFIG = {
+        form.querySelectorAll("input, select, textarea")
+            .forEach(field => {
 
-    totalSteps: 10,
+                if (field.type === "file") {
 
-    version: "1.0.0",
+                    field.value = "";
 
-    autoSave: false,
+                } else if (
+                    field.type === "checkbox" ||
+                    field.type === "radio"
+                ) {
 
-    debug: true
+                    field.checked = field.defaultChecked;
 
-};
+                } else {
 
+                    field.value = field.defaultValue;
 
-/*
-============================================================
-                RESET COMPLETE FORM
-============================================================
-*/
+                }
 
-function resetCompleteForm(){
-
-    const form = document.querySelector("#multiStepForm");
-
-    if(form){
-
-        form.reset?.();
-
+            });
     }
-
-    currentStep = 1;
-
-    showStep(currentStep);
 
     resetFormData();
 
+    // Keep photo state synchronized.
+
+    if (typeof clearGallery === "function") {
+        clearGallery();
+    }
+
+    if (typeof clearAllErrors === "function") {
+        clearAllErrors();
+    }
+
+    const firstTemplate = document.querySelector(
+        'input[name="biodataTemplate"][value="template1"]'
+    );
+
+    if (firstTemplate) {
+        firstTemplate.checked = true;
+    }
+
+    updateSelectedTemplateCard();
+
+    currentStep = 1;
+
+    showStep(currentStep);
 }
 
 
-/*
-============================================================
-                RESET STORED DATA
-============================================================
-*/
+/* ==========================================================
+                    RESET BIODATA OBJECT
+========================================================== */
 
-function resetFormData(){
+function resetFormData() {
 
     biodata.personal = {};
 
@@ -1473,11 +1253,21 @@ function resetFormData(){
 
     biodata.family = {};
 
+    biodata.baan = {};
+
     biodata.partner = {};
 
-    biodata.contact = {};
+    biodata.contact = {
+        mobileNumber: "",
+        currentAddress: "",
+        permanentAddress: ""
+    };
 
-    biodata.declaration = {};
+    biodata.declaration = {
+        declaration: "",
+        senderName: "",
+        senderMobile: ""
+    };
 
     biodata.photos = {};
 
@@ -1485,70 +1275,47 @@ function resetFormData(){
 
 }
 
-/*
-============================================================
-                FORM COMPLETED
-============================================================
-*/
 
-function completeForm(){
+/* ==========================================================
+                    FORM COMPLETED
+========================================================== */
 
-    console.log("================================");
+function completeForm() {
 
-    console.log("Biodata Form Completed");
+    saveAllFormData();
 
-    console.log("================================");
-
-    debugLog("Biodata Form Completed", biodata);
+    debugLog("Biodata Form Completed", {
+        template: biodata.template
+    });
 
 }
 
 
-/*
-============================================================
-                SAFE GET ELEMENT
-============================================================
-*/
+/* ==========================================================
+                    SAFE GET ELEMENT
+========================================================== */
 
-function safeElement(id){
+function safeElement(id) {
 
-    const element = document.getElementById(id);
+    const element =
+        document.getElementById(id);
 
-    if(!element){
-
-        if(FORM_CONFIG.debug){
-
-            console.warn(
-
-                "Element not found:",
-
-                id
-
-            );
-
-        }
-
-        return null;
-
+    if (!element && FORM_CONFIG.debug) {
+        console.warn("Element not found:", id);
     }
 
     return element;
-
 }
 
 
-/*
-============================================================
-                DEBUG LOG
-============================================================
-*/
+/* ==========================================================
+                    DEBUG LOGGER
+========================================================== */
 
-function debugLog(title,data){
+function debugLog(title, data) {
 
-    if(!FORM_CONFIG.debug){
-
+    if (!FORM_CONFIG.debug) {
         return;
-
     }
 
     console.group(title);
@@ -1556,172 +1323,137 @@ function debugLog(title,data){
     console.log(data);
 
     console.groupEnd();
-
 }
 
 
-/*
-============================================================
-                EXPORT DATA
-============================================================
-*/
+/* ==========================================================
+                    EXPORT FORM DATA
+========================================================== */
 
-function exportFormData(){
+function exportFormData() {
 
     return JSON.parse(
-
         JSON.stringify(biodata)
-
     );
-
 }
 
 
-/*
-============================================================
-                FINAL INITIALIZATION
-============================================================
-*/
-
-document.addEventListener("DOMContentLoaded",()=>{
-
-    debugLog(
-
-        "Form Module",
-
-        "Initialized Successfully"
-
-    );
-
-});
-
-
-
-
-document.addEventListener(
-    "DOMContentLoaded",
-    function() {
-
-        initializeTemplateCardSelection();
-
-    }
-);
-
-
-
-
-/*==========================================================
-        STEP 9 - CLICK ENTIRE TEMPLATE CARD
-==========================================================*/
+/* ==========================================================
+                    TEMPLATE CARD SELECTION
+========================================================== */
 
 function initializeTemplateCardSelection() {
 
     const templateCards =
-        document.querySelectorAll(
-            ".template-option"
-        );
+        document.querySelectorAll(".template-option");
 
     templateCards.forEach(card => {
 
-        const radio =
-            card.querySelector(
-                'input[name="biodataTemplate"]'
-            );
+        const radio = card.querySelector(
+            'input[name="biodataTemplate"]'
+        );
 
         if (!radio) {
             return;
         }
 
-        card.addEventListener(
-            "click",
-            function(event) {
+        /* Only allow two templates */
 
-                /*
-                 * If user clicked the radio button
-                 * or label, browser already handles it.
-                 */
-                if (
-                    event.target === radio ||
-                    event.target.tagName === "LABEL"
-                ) {
-                    updateSelectedTemplateCard();
-                    return;
+        if (
+            !FORM_CONFIG.allowedTemplates.includes(
+                radio.value
+            )
+        ) {
+
+            card.style.display = "none";
+
+            return;
+        }
+
+        card.addEventListener("click", event => {
+
+            if (
+                event.target === radio ||
+                event.target.closest("label")
+            ) {
+
+                updateSelectedTemplateCard();
+
+                return;
+            }
+
+            radio.checked = true;
+
+            radio.dispatchEvent(
+                new Event("change", {
+                    bubbles: true
+                })
+            );
+
+        });
+
+        radio.addEventListener("change", () => {
+
+            if (radio.checked) {
+
+                biodata.template = radio.value;
+
+                if (typeof saveBiodata === "function") {
+                    saveBiodata();
                 }
 
-                /*
-                 * Clicking anywhere else on the
-                 * template selects the radio button.
-                 */
-                radio.checked = true;
-
-                radio.dispatchEvent(
-                    new Event(
-                        "change",
-                        {
-                            bubbles: true
-                        }
-                    )
-                );
-
-                updateSelectedTemplateCard();
-
             }
-        );
 
-        radio.addEventListener(
-            "change",
-            function() {
+            updateSelectedTemplateCard();
 
-                updateSelectedTemplateCard();
-
-            }
-        );
+        });
 
     });
 
     updateSelectedTemplateCard();
-
 }
 
 
-/*==========================================================
-        UPDATE SELECTED TEMPLATE VISUAL
-==========================================================*/
+/* ==========================================================
+                    UPDATE SELECTED CARD STYLE
+========================================================== */
 
 function updateSelectedTemplateCard() {
 
     const cards =
-        document.querySelectorAll(
-            ".template-option"
-        );
+        document.querySelectorAll(".template-option");
 
     cards.forEach(card => {
 
-        const radio =
-            card.querySelector(
-                'input[name="biodataTemplate"]'
-            );
+        const radio = card.querySelector(
+            'input[name="biodataTemplate"]'
+        );
 
         if (
             radio &&
-            radio.checked
+            radio.checked &&
+            FORM_CONFIG.allowedTemplates.includes(
+                radio.value
+            )
         ) {
 
-            card.classList.add(
-                "selected"
-            );
+            card.classList.add("selected");
 
         } else {
 
-            card.classList.remove(
-                "selected"
-            );
+            card.classList.remove("selected");
 
         }
 
     });
-
 }
+
+
+/* ==========================================================
+                    END OF FORM.JS
+========================================================== */
+
+
 
 
 

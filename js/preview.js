@@ -1,86 +1,52 @@
-/* =========================================
-   PDF DROPDOWN VALUE TRANSLATIONS
-========================================= */
+
+/* ==========================================================
+                        PREVIEW.JS
+                    JAISWAL VAIVAAHIKI
+
+                    ENGLISH ONLY
+                   TWO PDF TEMPLATES
+
+                 SAME BIODATA INFORMATION
+                 BAAN DETAILS SUPPORTED
+
+               UPDATED 10-STEP FORM STRUCTURE
+========================================================== */
+
+
+/* ==========================================================
+                    PDF VALUE FORMAT
+                 NO HINDI TRANSLATION
+========================================================== */
 
 function formatPDFValue(field, value) {
 
-    if (value === null || value === undefined || value === "") {
+    if (
+        value === null ||
+        value === undefined ||
+        value === ""
+    ) {
         return "";
     }
 
-    const translations = {
-
-        gan: {
-            "Dev": "देव",
-            "Manushya": "मनुष्य",
-            "Rakshas": "राक्षस"
-        },
-
-        maritalStatus: {
-            "Unmarried": "अविवाहित",
-            "Divorced": "तलाकशुदा",
-            "Widowed": "विधवा / विधुर"
-        },
-
-        caste: {
-            "Kalar": "कलार",
-            "Kalwar": "कलवार",
-            "Kalal": "कलाल"
-        },
-
-        manglik: {
-            "Yes": "हाँ",
-            "No": "नहीं",
-            "Aanshik": "आंशिक"
-        },
-
-        diet: {
-            "Vegetarian": "शाकाहारी",
-            "Non-Vegetarian": "मांसाहारी"
-        }
-
-    };
-
-    // Partner caste uses the same translations
-    const translationField =
-        field === "preferredCaste" ? "caste" : field;
-
-    const options = translations[translationField];
-
-    if (!options) {
-        return value;
-    }
-
-    const text = String(value).trim();
-
-    // Support previously saved Hindi values too
-    const english =
-        Object.keys(options).find(
-            key => key === text || options[key] === text
-        ) || text;
-
-    const selectedTemplate = biodata.template || "template1";
-
-    const hindiPDF =
-        selectedTemplate === "template5" ||
-        selectedTemplate === "template6" ||
-        selectedTemplate === "template7";
-
-    return hindiPDF
-        ? (options[english] || value)
-        : english;
+    return String(value).trim();
 }
 
 
+/* ==========================================================
+                    DATE FORMAT
+                    YYYY-MM-DD TO DD-MM-YYYY
+========================================================== */
+
 function formatDOB(dateString) {
+
     if (!dateString) {
         return "";
     }
 
-    const parts = dateString.split("-");
+    const parts = String(dateString).split("-");
 
     if (parts.length !== 3) {
-        return dateString;
+        return String(dateString);
     }
 
     const [year, month, day] = parts;
@@ -88,446 +54,820 @@ function formatDOB(dateString) {
     return `${day}-${month}-${year}`;
 }
 
-// =========================================
-// preview.js
-// =========================================
+
+/* ==========================================================
+                    SAFE PREVIEW TEXT
+========================================================== */
+
+function setPreviewText(id, value) {
+
+    const element = document.getElementById(id);
+
+    if (!element) {
+        return;
+    }
+
+    element.textContent =
+        value === null || value === undefined
+            ? ""
+            : String(value);
+}
 
 
-function renderPreviewContainer() {
+/* ==========================================================
+                    TEMPLATE SELECTION
+========================================================== */
 
-
-    /* =========================================
-            SELECT BIODATA TEMPLATE
-    ========================================= */
+function getSelectedPreviewTemplate() {
 
     const selectedTemplate =
         biodata.template || "template1";
 
+    if (
+        selectedTemplate === "template1" ||
+        selectedTemplate === "template2"
+    ) {
+        return selectedTemplate;
+    }
+
+    return "template1";
+}
+
+
+/* ==========================================================
+                    RENDER PDF PREVIEW
+========================================================== */
+
+function renderPreviewContainer() {
+
+    const selectedTemplate =
+        getSelectedPreviewTemplate();
 
     const config =
         TEMPLATE_CONFIG[selectedTemplate] ||
         TEMPLATE_CONFIG.template1;
 
+    if (!config) {
 
-    /*
-    =============================================
-            UPDATE TEMPLATE BACKGROUND IMAGE
-    =============================================
-    */
+        console.error("Template configuration missing.");
+
+        return;
+    }
+
+
+    /* ======================================================
+                    TEMPLATE BACKGROUND
+    ====================================================== */
 
     const templateImage =
         document.querySelector(".pdf-template");
 
+    if (templateImage) {
 
-    if(templateImage && config){
-
-        templateImage.src = config.image;
+        if (
+            templateImage.getAttribute("src") !==
+            config.image
+        ) {
+            templateImage.src = config.image;
+        }
 
     }
 
 
-
-    /* ==========================
-            Personal Details
-    ========================== */
-
-    document.getElementById("previewName").textContent =
-        biodata.personal.fullName || "";
-
-    document.getElementById("previewDOB").textContent =
-        formatDOB(biodata.personal.dob);
-
-    document.getElementById("previewTime").textContent =
-        biodata.personal.timeOfBirth || "";
-
-    document.getElementById("previewPlace").textContent =
-        biodata.personal.placeOfBirth || "";
-
-    document.getElementById("previewReligion").textContent =
-        biodata.personal.religion || "";
-
-    document.getElementById("previewGotra").textContent =
-        biodata.personal.gotra || "";
-
-    document.getElementById("previewSubCaste").textContent =
-        biodata.personal.subCaste || "";
-
-    document.getElementById("previewRashi").textContent =
-        biodata.personal.rashi || "";
-
-    document.getElementById("previewGan").textContent =
-        formatPDFValue("gan", biodata.personal.gan);
-
-    document.getElementById("previewHeight").textContent =
-        biodata.personal.height || "";
-
-    document.getElementById("previewComplexion").textContent =
-        biodata.personal.complexion || "";
-
-    document.getElementById("previewMaritalStatus").textContent =
-        formatPDFValue("maritalStatus", biodata.personal.maritalStatus);
-
-    document.getElementById("previewCaste").textContent =
-        formatPDFValue("caste", biodata.personal.caste);
-
-    document.getElementById("previewManglik").textContent =
-        formatPDFValue("manglik", biodata.personal.manglik);
-
-    document.getElementById("previewLanguage").textContent =
-        biodata.personal.language || "";
-
-    document.getElementById("previewDiet").textContent =
-        formatPDFValue("diet", biodata.personal.diet);
-
-    document.getElementById("previewHobbies").textContent =
-        biodata.personal.hobbies || "";
-
-    document.getElementById("previewOther").textContent =
-        biodata.personal.other || "";
-
-
-
-    /* ==========================
-            Education
-    ========================== */
-
-    document.getElementById("previewHighestQualification").textContent =
-        biodata.education.highestQualification || "";
-
-    document.getElementById("previewCollege").textContent =
-        biodata.education.college || "";
-
-    document.getElementById("previewBoard12th").textContent =
-        biodata.education.Board12th || "";
-
-    document.getElementById("previewBoard10th").textContent =
-        biodata.education.Board10th || "";
-
-    document.getElementById("previewSpecialSkill").textContent =
-        biodata.education.specialSkill || "";
-
-    document.getElementById("previewEducationOther").textContent =
-        biodata.education.educationOther || "";
-
-
-
-    /* ==========================
-            Work & Career
-    ========================== */
-
-    document.getElementById("previewProfession").textContent =
-        biodata.work.profession || "";
-
-    document.getElementById("previewDesignation").textContent =
-        biodata.work.designation || "";
-
-    document.getElementById("previewOrganization").textContent =
-        biodata.work.organization || "";
-
-    document.getElementById("previewWorkPlace").textContent =
-        biodata.work.workPlace || "";
-
-    document.getElementById("previewIncome").textContent =
-        biodata.work.income || "";
-
-
-
-    /* ==========================
-            Family Details
-    ========================== */
-
-    document.getElementById("previewFatherName").textContent =
-        biodata.family.fatherName || "";
-
-    document.getElementById("previewFatherOccupation").textContent =
-        biodata.family.fatherOccupation || "";
-
-    document.getElementById("previewMotherName").textContent =
-        biodata.family.motherName || "";
-
-    document.getElementById("previewMotherOccupation").textContent =
-        biodata.family.motherOccupation || "";
-
-    document.getElementById("previewSiblingsDetails").textContent =
-        biodata.family.siblingsDetails || "";
-
-
-
-    /* ==========================
-            Partner Preference
-    ========================== */
-
-    document.getElementById("previewPartnerQualification").textContent =
-        biodata.partner.preferredQualification || "";
-
-    document.getElementById("previewPartnerProfession").textContent =
-        biodata.partner.preferredProfession || "";
-
-    document.getElementById("previewPartnerLocation").textContent =
-        biodata.partner.preferredLocation || "";
-
-    document.getElementById("previewPartnerCaste").textContent =
-        biodata.partner.preferredCaste || "";
-
-    document.getElementById("previewPartnerOther").textContent =
-        biodata.partner.otherExpectations || "";
-
-
-
-    /* ==========================
-            Contact Details
-    ========================== */
-
-    document.getElementById("previewMobile").textContent =
-        biodata.contact.mobileNumber || "";
-
-    document.getElementById("previewSenderName").textContent =
-        biodata.declaration.senderName || "";
-
-    document.getElementById("previewSenderMobile").textContent =
-        biodata.declaration.senderMobile || "";
-
-
-
-    /* ==========================
-            Address
-    ========================== */
-
-    document.getElementById("previewCurrentAddress").textContent =
-        biodata.contact.currentAddress || "";
-
-    document.getElementById("previewPermanentAddress").textContent =
-        biodata.contact.permanentAddress || "";
-
-
-
-    /* ==========================
-            Profile Photo
-    ========================== */
-
-    document.getElementById("previewPhoto").src =
-        biodata.photos.profilePhoto?.preview ||
-        "assets/images/defaults/default-profile.png";
-
-
-
-    /* =========================================
-            APPLY SELECTED TEMPLATE POSITIONS
-    ========================================= */
-
-    applyPositions(
-
-        config.positions
-
+    /* ======================================================
+                    ABOUT ME
+                    PERSONAL DETAILS
+    ====================================================== */
+
+    setPreviewText(
+        "previewName",
+        biodata.personal?.fullName
     );
 
-}
+    setPreviewText(
+        "previewDOB",
+        formatDOB(biodata.personal?.dob)
+    );
 
+    setPreviewText(
+        "previewTime",
+        biodata.personal?.timeOfBirth
+    );
 
+    setPreviewText(
+        "previewPlace",
+        biodata.personal?.placeOfBirth
+    );
 
+    setPreviewText(
+        "previewReligion",
+        biodata.personal?.religion
+    );
 
+    setPreviewText(
+        "previewGotra",
+        biodata.personal?.gotra
+    );
 
-
-
-
-/* =========================================
-            APPLY TEMPLATE POSITIONS
-========================================= */
-
-function applyPositions(positions) {
-
+    setPreviewText(
+        "previewCaste",
+        formatPDFValue(
+            "caste",
+            biodata.personal?.caste
+        )
+    );
 
     /*
-    =============================================
-            SAFETY FALLBACK
-    =============================================
+    ======================================================
+        Sub Caste is not present in the updated form
+        or the printed template.
+
+        Clear any older preview value.
+    ======================================================
     */
 
-    if(!positions){
-
-        console.error(
-
-            "Template positions not found."
-
-        );
-
-        return;
-
-    }
-
-
-    Object.entries(positions).forEach(
-
-        ([id, p]) => {
-
-
-            const e = document.getElementById(id);
-
-
-            if(!e){
-
-                return;
-
-            }
-
-
-            /*
-            =========================================
-                    BASIC POSITION
-            =========================================
-            */
-
-            e.style.position = "absolute";
-
-            e.style.left = p.left + "px";
-
-            e.style.top = p.top + "px";
-
-
-            /*
-            =========================================
-                    WIDTH
-            =========================================
-            */
-
-            if(p.width){
-
-                e.style.width = p.width + "px";
-
-            }
-
-
-            /*
-            =========================================
-                    HEIGHT
-            =========================================
-            */
-
-            if(p.height){
-
-                e.style.height = p.height + "px";
-
-            }
-
-
-            /*
-            =========================================
-                    FONT SIZE
-            =========================================
-            */
-
-            if (p.fontSize !== undefined) {
-                e.style.setProperty("font-size", p.fontSize + "px", "important");
-            }
-
-
-            /*
-            =========================================
-                    FONT WEIGHT
-            =========================================
-            */
-
-            if (p.fontWeight !== undefined) {
-                e.style.setProperty("font-weight", p.fontWeight, "important");
-            }
-
-
-            /*
-            =========================================
-                    DEFAULT LINE HEIGHT
-            =========================================
-            */
-
-            e.style.lineHeight = "1.3";
-
-
-            /*
-            =========================================
-                    PREMIUM NAME STYLE
-            =========================================
-            */
-
-            if(id === "previewName") {
-
-
-                e.style.fontFamily =
-                    "'Playfair Display', serif";
-
-
-                /*
-                =====================================
-                NOTE:
-
-                Template-specific position values
-                can still control left/top/width.
-
-                These styles currently remain common
-                for all templates.
-                =====================================
-                */
-
-                e.style.color = "#003153";
-
-                e.style.textAlign = "left";
-
-                e.style.fontStyle = "italic";
-
-                e.style.textShadow =
-                    "0 1px 0 #fff, 0 2px 3px rgba(0,0,0,0.35)";
-
-                e.style.textTransform = "uppercase";
-
-            }
-
-
-            /*
-            =========================================
-                    MULTI-LINE SUPPORT
-            =========================================
-            */
-
-            if(p.multiline){
-
-
-                e.style.whiteSpace = "normal";
-
-                e.style.wordBreak = "break-word";
-
-                e.style.overflowWrap = "break-word";
-
-                e.style.overflow = "hidden";
-
-                e.style.lineHeight = "1.3";
-
-
-                if(p.height){
-
-                    e.style.height =
-                        p.height + "px";
-
-                }
-
-            }
-
-
-            else{
-
-
-                e.style.whiteSpace = "nowrap";
-
-                e.style.overflow = "visible";
-
-                e.style.display = "block";
-
-                e.style.webkitLineClamp = "";
-
-                e.style.webkitBoxOrient = "";
-
-            }
-
+    setPreviewText(
+        "previewSubCaste",
+        ""
+    );
+
+    setPreviewText(
+        "previewRashi",
+        biodata.personal?.rashi
+    );
+
+    setPreviewText(
+        "previewGan",
+        formatPDFValue(
+            "gan",
+            biodata.personal?.gan
+        )
+    );
+
+    setPreviewText(
+        "previewManglik",
+        formatPDFValue(
+            "manglik",
+            biodata.personal?.manglik
+        )
+    );
+
+    setPreviewText(
+        "previewMaritalStatus",
+        formatPDFValue(
+            "maritalStatus",
+            biodata.personal?.maritalStatus
+        )
+    );
+
+    setPreviewText(
+        "previewDiet",
+        formatPDFValue(
+            "diet",
+            biodata.personal?.diet
+        )
+    );
+
+    setPreviewText(
+        "previewHeight",
+        biodata.personal?.height
+    );
+
+    setPreviewText(
+        "previewComplexion",
+        biodata.personal?.complexion
+    );
+
+    /*
+    ======================================================
+        Native Place is optional.
+
+        Keep the field after Complexion, matching
+        the updated About Me section.
+    ======================================================
+    */
+
+    setPreviewText(
+        "previewNativePlace",
+        biodata.personal?.nativePlace
+    );
+
+    /*
+        Person's spoken language,
+        not the website interface language.
+    */
+
+    setPreviewText(
+        "previewLanguage",
+        biodata.personal?.language
+    );
+
+    setPreviewText(
+        "previewHobbies",
+        biodata.personal?.hobbies
+    );
+
+    setPreviewText(
+        "previewOther",
+        biodata.personal?.other
+    );
+
+
+    /* ======================================================
+                    EDUCATION & CAREER
+    ====================================================== */
+
+    setPreviewText(
+        "previewHighestQualification",
+        biodata.education?.highestQualification
+    );
+
+    setPreviewText(
+        "previewCollege",
+        biodata.education?.college
+    );
+
+    setPreviewText(
+        "previewBoard12th",
+        biodata.education?.Board12th
+    );
+
+    setPreviewText(
+        "previewBoard10th",
+        biodata.education?.Board10th
+    );
+
+    /*
+    ======================================================
+        The updated HTML has six printed fields:
+
+        1. Qualification
+        2. College
+        3. 12th Board
+        4. 10th Board
+        5. Profession
+        6. Income
+
+        Special Skill and Education Other are no longer
+        part of this template.
+    ======================================================
+    */
+
+    setPreviewText(
+        "previewSpecialSkill",
+        ""
+    );
+
+    setPreviewText(
+        "previewEducationOther",
+        ""
+    );
+
+
+    /* ======================================================
+                    WORK & CAREER
+
+        Profession and Income are displayed under
+        Education & Career in the updated template.
+
+        The data remains in biodata.work to keep
+        compatibility with form.js and storage.js.
+    ====================================================== */
+
+    setPreviewText(
+        "previewProfession",
+        biodata.work?.profession
+    );
+
+    /*
+    ======================================================
+        These fields are not collected by the updated
+        form. Clear any previous values.
+    ======================================================
+    */
+
+    setPreviewText(
+        "previewDesignation",
+        ""
+    );
+
+    setPreviewText(
+        "previewOrganization",
+        ""
+    );
+
+    setPreviewText(
+        "previewWorkPlace",
+        ""
+    );
+
+    setPreviewText(
+        "previewIncome",
+        biodata.work?.income
+    );
+
+
+    /* ======================================================
+                    ABOUT FAMILY
+                    FAMILY DETAILS
+    ====================================================== */
+
+    setPreviewText(
+        "previewFatherName",
+        biodata.family?.fatherName
+    );
+
+    setPreviewText(
+        "previewFatherOccupation",
+        biodata.family?.fatherOccupation
+    );
+
+    setPreviewText(
+        "previewMotherName",
+        biodata.family?.motherName
+    );
+
+    setPreviewText(
+        "previewMotherOccupation",
+        biodata.family?.motherOccupation
+    );
+
+    setPreviewText(
+        "previewSiblingsDetails",
+        biodata.family?.siblingsDetails
+    );
+
+
+    /* ======================================================
+                    DETAILS OF BAAN
+
+                    ALL FIVE FIELDS OPTIONAL
+    ====================================================== */
+
+    setPreviewText(
+        "previewMulbaan",
+        biodata.baan?.mulbaan
+    );
+
+    setPreviewText(
+        "previewAjiaur",
+        biodata.baan?.ajiaur
+    );
+
+    setPreviewText(
+        "previewNaniaur",
+        biodata.baan?.naniaur
+    );
+
+    setPreviewText(
+        "previewSasural",
+        biodata.baan?.sasural
+    );
+
+    setPreviewText(
+        "previewSasKeNaihar",
+        biodata.baan?.sasKeNaihar
+    );
+
+
+    /* ======================================================
+                    PARTNER'S PREFERENCES
+    ====================================================== */
+
+    setPreviewText(
+        "previewPartnerQualification",
+        biodata.partner?.preferredQualification
+    );
+
+    setPreviewText(
+        "previewPartnerProfession",
+        biodata.partner?.preferredProfession
+    );
+
+    setPreviewText(
+        "previewPartnerLocation",
+        biodata.partner?.preferredLocation
+    );
+
+    setPreviewText(
+        "previewPartnerCaste",
+        formatPDFValue(
+            "preferredCaste",
+            biodata.partner?.preferredCaste
+        )
+    );
+
+    setPreviewText(
+        "previewPartnerOther",
+        biodata.partner?.otherExpectations
+    );
+
+
+    /* ======================================================
+                    CONTACT DETAILS
+    ====================================================== */
+
+    setPreviewText(
+        "previewMobile",
+        biodata.contact?.mobileNumber
+    );
+
+
+    /* ======================================================
+                    ADDRESS
+    ====================================================== */
+
+    setPreviewText(
+        "previewCurrentAddress",
+        biodata.contact?.currentAddress
+    );
+
+    setPreviewText(
+        "previewPermanentAddress",
+        biodata.contact?.permanentAddress
+    );
+
+
+    /* ======================================================
+                    DECLARATION & CONSENT
+                    SENDER DETAILS
+    ====================================================== */
+
+    setPreviewText(
+        "previewSenderName",
+        biodata.declaration?.senderName
+    );
+
+    setPreviewText(
+        "previewSenderMobile",
+        biodata.declaration?.senderMobile
+    );
+
+
+    /* ======================================================
+                    PROFILE PHOTO
+    ====================================================== */
+
+    const photo =
+        document.getElementById("previewPhoto");
+
+    if (photo) {
+
+        const photoSource =
+            biodata.photos?.profilePhoto?.preview ||
+            "assets/images/defaults/default-profile.png";
+
+        if (
+            photo.getAttribute("src") !== photoSource
+        ) {
+
+            photo.src = photoSource;
 
         }
 
+        photo.alt = "Profile Photo";
+
+    }
+
+
+    /* ======================================================
+                    APPLY TEMPLATE POSITIONS
+    ====================================================== */
+
+    applyPositions(
+        config.positions,
+        selectedTemplate
     );
 
 }
+
+
+/* ==========================================================
+                    APPLY TEMPLATE POSITIONS
+========================================================== */
+
+function applyPositions(
+    positions,
+    selectedTemplate = "template1"
+) {
+
+    if (!positions) {
+
+        console.error("Template positions not found.");
+
+        return;
+    }
+
+    const previewPage =
+        document.querySelector(".preview-page");
+
+    if (!previewPage) {
+
+        console.error("Preview page not found.");
+
+        return;
+    }
+
+
+    /* ======================================================
+                    RESET ALL PREVIEW FIELD STYLES
+
+                    BEFORE APPLYING NEW TEMPLATE
+    ====================================================== */
+
+    const previewElements =
+        previewPage.querySelectorAll('[id^="preview"]');
+
+    /*
+    ======================================================
+        These fields no longer appear in the updated
+        printed template, even if an older positions.js
+        still contains their coordinates.
+
+        Keeping this list prevents outdated values
+        from accidentally appearing in the PDF.
+    ======================================================
+    */
+
+    const removedPreviewFields = new Set([
+
+        "previewSubCaste",
+
+        "previewSpecialSkill",
+
+        "previewEducationOther",
+
+        "previewDesignation",
+
+        "previewOrganization",
+
+        "previewWorkPlace"
+
+    ]);
+
+    previewElements.forEach(element => {
+
+        const position = positions[element.id];
+
+        if (
+            !position ||
+            removedPreviewFields.has(element.id)
+        ) {
+
+            element.style.display = "none";
+
+            return;
+
+        }
+
+        element.style.display = "block";
+
+        element.style.position = "absolute";
+
+        element.style.left = "";
+
+        element.style.top = "";
+
+        element.style.width = "";
+
+        element.style.height = "";
+
+        element.style.removeProperty("font-size");
+
+        element.style.removeProperty("font-weight");
+
+        element.style.fontFamily = "";
+
+        element.style.fontStyle = "";
+
+        element.style.color = "";
+
+        element.style.textAlign = "";
+
+        element.style.textShadow = "";
+
+        element.style.textTransform = "";
+
+        element.style.lineHeight = "";
+
+        element.style.whiteSpace = "";
+
+        element.style.wordBreak = "";
+
+        element.style.overflowWrap = "";
+
+        element.style.overflow = "";
+
+        element.style.textOverflow = "";
+
+        element.style.webkitLineClamp = "";
+
+        element.style.webkitBoxOrient = "";
+
+        element.style.borderRadius = "";
+
+        element.style.objectFit = "";
+
+    });
+
+
+    /* ======================================================
+                    APPLY POSITION VALUES
+    ====================================================== */
+
+    Object.entries(positions).forEach(([id, position]) => {
+
+        const element =
+            document.getElementById(id);
+
+        if (
+            !element ||
+            !previewPage.contains(element)
+        ) {
+            return;
+        }
+
+        /*
+        ==================================================
+            Skip obsolete fields in both templates.
+        ==================================================
+        */
+
+        if (removedPreviewFields.has(id)) {
+
+            element.style.display = "none";
+
+            return;
+        }
+
+        if (
+            !position ||
+            !Number.isFinite(Number(position.left)) ||
+            !Number.isFinite(Number(position.top))
+        ) {
+
+            element.style.display = "none";
+
+            return;
+
+        }
+
+        element.style.display = "block";
+
+        element.style.position = "absolute";
+
+        element.style.left =
+            position.left + "px";
+
+        element.style.top =
+            position.top + "px";
+
+        if (position.width !== undefined) {
+
+            element.style.width =
+                position.width + "px";
+
+        }
+
+        if (position.height !== undefined) {
+
+            element.style.height =
+                position.height + "px";
+
+        }
+
+        if (position.fontSize !== undefined) {
+
+            element.style.setProperty(
+                "font-size",
+                position.fontSize + "px",
+                "important"
+            );
+
+        }
+
+        if (position.fontWeight !== undefined) {
+
+            element.style.setProperty(
+                "font-weight",
+                position.fontWeight,
+                "important"
+            );
+
+        }
+
+        element.style.lineHeight = "1.3";
+
+
+        /* ==================================================
+                    MULTILINE FIELDS
+        ================================================== */
+
+        if (position.multiline) {
+
+            element.style.whiteSpace = "normal";
+
+            element.style.wordBreak = "break-word";
+
+            element.style.overflowWrap = "break-word";
+
+            element.style.overflow = "hidden";
+
+            element.style.lineHeight = "1.3";
+
+            if (position.height) {
+
+                element.style.height =
+                    position.height + "px";
+
+            }
+
+        } else {
+
+            element.style.whiteSpace = "nowrap";
+
+            element.style.overflow = "visible";
+
+            element.style.display = "block";
+
+            element.style.webkitLineClamp = "";
+
+            element.style.webkitBoxOrient = "";
+
+        }
+
+
+
+
+        /* ==================================================
+                        PROFILE PHOTO
+                  RECTANGULAR DISPLAY
+        ================================================== */
+
+        if (id === "previewPhoto") {
+
+            element.style.objectFit = "cover";
+
+            element.style.objectPosition = "center";
+
+            element.style.borderRadius = "0";
+
+            element.style.display = "block";
+
+            return;
+        }
+
+
+        /* ==================================================
+                    NAME STYLING
+        ================================================== */
+
+        if (id === "previewName") {
+
+            element.style.fontFamily =
+                "'Playfair Display', Georgia, serif";
+
+            element.style.color = "#003153";
+
+            element.style.textAlign = "left";
+
+            element.style.textTransform = "uppercase";
+
+            if (selectedTemplate === "template1") {
+
+                element.style.fontStyle = "italic";
+
+                element.style.textShadow =
+                    "0 1px 0 #fff, 0 2px 3px rgba(0,0,0,0.35)";
+
+            } else {
+
+                element.style.fontStyle = "normal";
+
+                element.style.textShadow = "none";
+
+            }
+
+        } else {
+
+            element.style.fontFamily =
+                "'Poppins', sans-serif";
+
+            element.style.fontStyle = "normal";
+
+            element.style.color = "#111111";
+
+            element.style.textTransform = "none";
+
+            element.style.textShadow = "none";
+
+        }
+
+    });
+
+}
+
+
+/* ==========================================================
+                    END OF PREVIEW.JS
+========================================================== */

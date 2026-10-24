@@ -1,16 +1,42 @@
-# Backend
-backend_Jaiswal/
-
-# Backend shortcut
-backend - Shortcut.lnk
 
 # PyCharm
 .idea/
+
+# Python virtual environments
+.venv/
+venv/
+env/
 
 # Python cache
 __pycache__/
 *.pyc
 
-# Environment/secrets
+# Environment variables and secrets
 .env
 .env.*
+!.env.example
+
+# Private keys and credentials
+*.pem
+*.key
+credentials.json
+service-account.json
+secrets.json
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+logs/
+
+# Operating system
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+
+# Local caches
+.cache/
